@@ -1,0 +1,15 @@
+export enum ErrorCode {
+  BAD_REQUEST = 400,
+  UNAUTHORIZED = 401,
+  FORBIDDEN = 403,
+  NO_RESULT = 404,
+  CONFLICT = 409,
+  PRECONDITION_REQUIRED = 428,
+  SERVER_ERROR = 500,
+}
+
+export enum SuccessCode {
+  OK = 200,
+  NO_CONTENT = 204,
+  CREATED = 201,
+}
