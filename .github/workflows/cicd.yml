@@ -26,5 +26,16 @@ jobs:
         run: docker pull victor823543/ranking-room-api:latest
       - name: Delete old container
         run: docker rm -f nodejs-app-container
+      - name: Create .env file
+        run: |
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN }}" >> .env
+          echo "S3_ACCESS_KEY_ID=${{ secrets.S3_ACCESS_KEY_ID }}" >> .env
+          echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .env
+          echo "S3_REGION=${{ secrets.S3_REGION }}" >> .env
+          echo "S3_SECRET_ACCESS_KEY=${{ secrets.S3_SECRET_ACCESS_KEY }}" >> .env
+          echo "NODE_ENV=production" >> .env
       - name: Run Docker Container
-        run: docker run -d -p 4000:4000 --name nodejs-app-container -e MONGO_URI=${{ secrets.MONGO_URI }} -e ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN }} -e S3_ACCESS_KEY_ID=${{ secrets.S3_ACCESS_KEY_ID }} -e S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }} -e S3_REGION=${{ secrets.S3_REGION }} -e S3_SECRET_ACCESS_KEY=${{ secrets.S3_SECRET_ACCESS_KEY }} -e NODE_ENV="production" victor823543/ranking-room-api
+        run: docker run -d -p 4000:4000 --name nodejs-app-container --env-file .env victor823543/ranking-room-api
+      - name: Remove .env file
+        run: rm .env
