@@ -17,7 +17,6 @@ export const MONGO_URI =
     : process.env.MONGO_URI || "";
 export const PORT = "4000";
 export const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "";
-// export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 export const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID || "";
 export const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME || "";
 export const S3_REGION = process.env.S3_REGION || "";

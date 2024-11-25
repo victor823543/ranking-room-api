@@ -11,6 +11,7 @@ import "./models/Object.js";
 import "./models/Room.js";
 import "./models/User.js";
 
+import authRoutes from "./routes/auth.js";
 import friendRequestRoutes from "./routes/friendRequest.js";
 import imageRoutes from "./routes/images.js";
 import objectRoutes from "./routes/objects.js";
@@ -31,6 +32,7 @@ server.use("/api/s3", s3Routes);
 server.use("/api/images", imageRoutes);
 server.use("/api/rooms", roomRoutes);
 server.use("/api/objects", objectRoutes);
+server.use("/api/auth", authRoutes);
 
 server.use(errorHandler);
 
