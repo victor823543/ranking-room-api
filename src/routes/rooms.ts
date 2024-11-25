@@ -8,5 +8,6 @@ const router = express.Router();
 router.post("/create", authorization, asyncHandler(roomController.createRoom));
 router.get("/list", authorization, asyncHandler(roomController.listUserRooms));
 router.get("/:id", authorization, asyncHandler(roomController.getRoomById));
+router.put("/:id", authorization, asyncHandler(roomController.updateRoom));
 
 export default router;
