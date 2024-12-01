@@ -22,6 +22,11 @@ type CreateRoomBody = {
   isPublic?: boolean;
 };
 
+type UpdateRoomBody = {
+  name?: string;
+  users?: Array<RoomUser>;
+};
+
 type GetRoomResponse = {
   id: string;
   name: string;
@@ -126,6 +131,89 @@ async function createRoom(req: Request, res: Response) {
   }
 }
 
+async function updateRoom(req: Request, res: Response) {
+  const { user } = res.locals;
+  const roomId: string = req.params.id;
+  const { name, users }: UpdateRoomBody = req.body;
+
+  if (!name && !users) {
+    throw new ErrorResponse(ErrorCode.BAD_REQUEST, "Invalid parameters.");
+  }
+
+  const findRoom = (await Room.findOne({
+    _id: roomId,
+  })) as IRoom | null;
+
+  if (findRoom === null) {
+    throw new ErrorResponse(ErrorCode.NO_RESULT, "Couldn't find the room.");
+  }
+
+  const userInRoom = findRoom.users.find(
+    (roomUser) => roomUser.userId.toString() === user._id,
+  );
+
+  if (!userInRoom) {
+    throw new ErrorResponse(ErrorCode.FORBIDDEN, "You are not in the room.");
+  }
+
+  if (userInRoom.privilages.indexOf(UserPrivilage.EDIT) === -1) {
+    throw new ErrorResponse(ErrorCode.FORBIDDEN, "You don't have permission.");
+  }
+
+  try {
+    if (name) {
+      await Room.updateOne({ _id: roomId }, { $set: { name } });
+    }
+
+    if (users) {
+      await Room.updateOne({ _id: roomId }, { $set: { users } });
+    }
+  } catch (error) {
+    console.error(error);
+    throw new ErrorResponse(ErrorCode.SERVER_ERROR, "Something went wrong.");
+  }
+
+  return sendValidResponse(res, SuccessCode.NO_CONTENT);
+}
+
+async function deleteRoom(req: Request, res: Response) {
+  const { user } = res.locals;
+  const roomId: string = req.params.id;
+
+  const findRoom = await Room.findOne({
+    _id: roomId,
+  });
+
+  if (findRoom === null) {
+    throw new ErrorResponse(ErrorCode.NO_RESULT, "Couldn't find the room.");
+  }
+
+  const userInRoom = findRoom.users.find(
+    (roomUser) => roomUser.userId.toString() === user._id,
+  );
+
+  if (!userInRoom) {
+    throw new ErrorResponse(ErrorCode.FORBIDDEN, "You are not in the room.");
+  }
+
+  if (userInRoom.privilages.indexOf(UserPrivilage.DELETE) === -1) {
+    throw new ErrorResponse(ErrorCode.FORBIDDEN, "You don't have permission.");
+  }
+
+  try {
+    await Room.deleteOne({ _id: roomId });
+    await Object.deleteMany({ room: roomId });
+    console.log(
+      `Room with ID ${roomId} was deleted along with ${findRoom.objects.length} objects.`,
+    );
+  } catch (error) {
+    console.error(error);
+    throw new ErrorResponse(ErrorCode.SERVER_ERROR, "Something went wrong.");
+  }
+
+  return sendValidResponse(res, SuccessCode.NO_CONTENT);
+}
+
 async function getRoomById(req: Request, res: Response) {
   const roomId: string = req.params.id;
 
@@ -209,4 +297,10 @@ async function listUserRooms(req: Request, res: Response) {
   );
 }
 
-export default { createRoom, getRoomById, listUserRooms };
+export default {
+  createRoom,
+  getRoomById,
+  listUserRooms,
+  updateRoom,
+  deleteRoom,
+};
