@@ -15,5 +15,10 @@ router.put(
   authorization,
   asyncHandler(objectController.addObjectsToRoom),
 );
+router.put(
+  "/update/:objectId",
+  authorization,
+  asyncHandler(objectController.updateObject),
+);
 
 export default router;
