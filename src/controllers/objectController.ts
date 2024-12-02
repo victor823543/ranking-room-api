@@ -291,4 +291,54 @@ async function addObjectsToRoom(req: Request, res: Response) {
   }
 }
 
-export default { rankObjects, addObjectsToRoom };
+async function updateObject(req: Request, res: Response) {
+  const { user } = res.locals;
+  const { objectId } = req.params;
+  const { image }: { image: string } = req.body;
+
+  if (!image) {
+    throw new ErrorResponse(ErrorCode.BAD_REQUEST, "Invalid parameters.");
+  }
+
+  const findObject = await RankingObject.findOne({
+    _id: objectId,
+  });
+
+  if (findObject === null) {
+    throw new ErrorResponse(ErrorCode.NO_RESULT, "Couldn't find the object.");
+  }
+
+  // CHeck if the user has edit privilage in the room
+  const room = await Room.findOne({ _id: findObject.room });
+  if (room === null) {
+    throw new ErrorResponse(ErrorCode.NO_RESULT, "Couldn't find the room.");
+  }
+
+  const roomUser = room.users.find(
+    (roomUser) => roomUser.userId.toString() === user._id,
+  );
+
+  if (roomUser === undefined) {
+    throw new ErrorResponse(
+      ErrorCode.FORBIDDEN,
+      "You do not have access to this room.",
+    );
+  }
+
+  if (!roomUser.privilages.includes(UserPrivilage.EDIT)) {
+    throw new ErrorResponse(
+      ErrorCode.FORBIDDEN,
+      "You do not have the permission to edit objects in this room.",
+    );
+  }
+
+  if (image) {
+    findObject.image = image;
+  }
+
+  await findObject.save();
+
+  return sendValidResponse(res, SuccessCode.OK, { roomId: findObject.room });
+}
+
+export default { rankObjects, addObjectsToRoom, updateObject };
