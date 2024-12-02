@@ -2,6 +2,9 @@ import crypto from "crypto";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { ACCESS_TOKEN_SECRET } from "../config.js";
+import { FriendRequest } from "../models/FriendRequest.js";
+import { Object } from "../models/Object.js";
+import { Room } from "../models/Room.js";
 import { TokenPayload, User } from "../models/User.js";
 import { Indef } from "../types/general.js";
 import { ErrorCode, SuccessCode } from "../utils/constants.js";
@@ -234,6 +237,62 @@ async function remove(req: Request, res: Response) {
     if (result.deletedCount === 0) {
       throw new Error();
     }
+
+    // Delete the user from all friends' friends list
+    await User.updateMany(
+      { _id: { $in: findUser.friends } },
+      { $pull: { friends: user._id } },
+    );
+
+    // Delete the friend requests from and to user
+    const deleteResult = await FriendRequest.deleteMany({
+      $or: [{ senderId: user._id }, { receiverId: user._id }],
+    });
+
+    // Log the number of friend requests deleted
+    console.log(`Deleted ${deleteResult.deletedCount} friend requests.`);
+
+    // Remove the user from all rooms and delete the room if there are no other users
+    await Room.updateMany(
+      {
+        "users.userId": user._id,
+      },
+      {
+        $pull: { users: { userId: user._id } },
+      },
+    );
+
+    // Find rooms with no users
+    const emptyRooms = await Room.find({
+      users: { $size: 0 },
+    });
+
+    // Delete rooms with no users
+    const deleteRoomResult = await Room.deleteMany({
+      _id: { $in: emptyRooms.map((room) => room._id) },
+    });
+
+    // Delete all objects in the deleted rooms
+    const deleteObjectResult = await Object.deleteMany({
+      roomId: { $in: emptyRooms.map((room) => room._id) },
+    });
+
+    // Log the number of rooms deleted
+    console.log(`Deleted ${deleteRoomResult.deletedCount} rooms.`);
+
+    // Log the number of objects deleted
+    console.log(`Deleted ${deleteObjectResult.deletedCount} objects.`);
+    54;
+
+    // Remove user ranking from all objects
+    Object.updateMany(
+      {
+        "ranking.user": user._id,
+      },
+      {
+        $pull: { ranking: { user: user._id } },
+      },
+    );
 
     return sendValidResponse(res, SuccessCode.NO_CONTENT);
   } catch (err) {
