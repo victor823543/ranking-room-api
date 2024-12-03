@@ -58,6 +58,7 @@ export type IRoom = {
   categories?: string[];
   tierNames?: string[];
   objects: Array<Types.ObjectId>;
+  likedBy: Array<Types.ObjectId>;
   public: boolean;
   timestamp: number;
 };
@@ -99,6 +100,11 @@ const schema = new Schema<IRoom>({
   objects: {
     type: [{ type: Schema.Types.ObjectId, ref: "Object" }],
     required: true,
+    default: [],
+  },
+  likedBy: {
+    type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    required: false,
     default: [],
   },
   public: {

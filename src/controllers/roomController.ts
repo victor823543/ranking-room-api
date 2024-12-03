@@ -38,6 +38,7 @@ type GetRoomResponse = {
   tierNames?: string[];
   objects: Array<IObject>;
   isPinned: boolean;
+  likedBy: Array<string>;
 };
 
 type ListRoomsResponse = Array<{
@@ -48,6 +49,7 @@ type ListRoomsResponse = Array<{
   timestamp: number;
   rankingSystem: RankingSystem;
   isPinned: boolean;
+  likedBy: Array<string>;
 }>;
 
 type PopulatedRoomUser = {
@@ -252,6 +254,7 @@ async function getRoomById(req: Request, res: Response) {
     tierNames: findRoom.tierNames,
     objects: findRoom.objects,
     isPinned: !!isPinned,
+    likedBy: findRoom.likedBy.map((id) => id.toString()),
   };
 
   return sendValidResponse<GetRoomResponse>(res, SuccessCode.OK, response);
@@ -300,6 +303,7 @@ async function listUserRooms(req: Request, res: Response) {
     isPinned: isPinned
       ? isPinned.roomId.toString() === room._id.toString()
       : false,
+    likedBy: room.likedBy.map((id: any) => id.toString()),
   }));
 
   const sortedRoomList = roomList.sort((a, b) => b.timestamp - a.timestamp);
@@ -334,6 +338,28 @@ async function pinRoom(req: Request, res: Response) {
   return sendValidResponse(res, SuccessCode.NO_CONTENT);
 }
 
+async function likeRoom(req: Request, res: Response) {
+  const { user } = res.locals;
+  const roomId: string = req.params.id;
+
+  const findRoom = await Room.findOne({ _id: roomId });
+
+  if (!findRoom) {
+    throw new ErrorResponse(ErrorCode.NO_RESULT, "Couldn't find the room.");
+  }
+
+  const isLiked = findRoom.likedBy.includes(user._id);
+
+  if (isLiked) {
+    await findRoom.updateOne({ $pull: { likedBy: user._id } });
+    return sendValidResponse(res, SuccessCode.NO_CONTENT);
+  }
+
+  await findRoom.updateOne({ $push: { likedBy: user._id } });
+
+  return sendValidResponse(res, SuccessCode.NO_CONTENT);
+}
+
 export default {
   createRoom,
   getRoomById,
@@ -341,4 +367,5 @@ export default {
   updateRoom,
   deleteRoom,
   pinRoom,
+  likeRoom,
 };
