@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { IObject, Object } from "../models/Object.js";
+import { Pin } from "../models/Pin.js";
 import {
   convertRoleToPrivilages,
   IRoom,
@@ -36,6 +37,7 @@ type GetRoomResponse = {
   categories?: string[];
   tierNames?: string[];
   objects: Array<IObject>;
+  isPinned: boolean;
 };
 
 type ListRoomsResponse = Array<{
@@ -45,6 +47,7 @@ type ListRoomsResponse = Array<{
   objects: Array<IObject>;
   timestamp: number;
   rankingSystem: RankingSystem;
+  isPinned: boolean;
 }>;
 
 type PopulatedRoomUser = {
@@ -216,6 +219,7 @@ async function deleteRoom(req: Request, res: Response) {
 
 async function getRoomById(req: Request, res: Response) {
   const roomId: string = req.params.id;
+  const { user } = res.locals;
 
   const findRoom = (await Room.findOne({
     _id: roomId,
@@ -227,6 +231,9 @@ async function getRoomById(req: Request, res: Response) {
   if (findRoom === null) {
     throw new ErrorResponse(ErrorCode.NO_RESULT, "Couldn't find the room.");
   }
+
+  // Check if the room is pinned by user
+  const isPinned = await Pin.findOne({ userId: user._id, roomId });
 
   const users = findRoom.users.map((user) => ({
     userId: user.userId._id.toString(),
@@ -244,6 +251,7 @@ async function getRoomById(req: Request, res: Response) {
     categories: findRoom.categories,
     tierNames: findRoom.tierNames,
     objects: findRoom.objects,
+    isPinned: !!isPinned,
   };
 
   return sendValidResponse<GetRoomResponse>(res, SuccessCode.OK, response);
@@ -274,6 +282,9 @@ async function listUserRooms(req: Request, res: Response) {
     return sendValidResponse(res, SuccessCode.OK, []);
   }
 
+  // Check if the room is pinned by user
+  const isPinned = await Pin.findOne({ userId: user._id });
+
   const roomList: ListRoomsResponse = rooms.map((room) => ({
     id: room._id,
     name: room.name,
@@ -286,6 +297,9 @@ async function listUserRooms(req: Request, res: Response) {
       username: user.userId.username,
     })),
     objects: room.objects,
+    isPinned: isPinned
+      ? isPinned.roomId.toString() === room._id.toString()
+      : false,
   }));
 
   const sortedRoomList = roomList.sort((a, b) => b.timestamp - a.timestamp);
@@ -297,10 +311,34 @@ async function listUserRooms(req: Request, res: Response) {
   );
 }
 
+async function pinRoom(req: Request, res: Response) {
+  const { user } = res.locals;
+  const roomId: string = req.params.id;
+  try {
+    const findPin = await Pin.findOne({ userId: user._id });
+
+    if (findPin) {
+      if (findPin.roomId.toString() === roomId) {
+        await findPin.deleteOne();
+        return sendValidResponse(res, SuccessCode.NO_CONTENT);
+      }
+      await Pin.updateOne({ userId: user._id }, { $set: { roomId } });
+    } else {
+      await Pin.create({ userId: user._id, roomId });
+    }
+  } catch (error) {
+    console.error(error);
+    throw new ErrorResponse(ErrorCode.SERVER_ERROR, "Something went wrong.");
+  }
+
+  return sendValidResponse(res, SuccessCode.NO_CONTENT);
+}
+
 export default {
   createRoom,
   getRoomById,
   listUserRooms,
   updateRoom,
   deleteRoom,
+  pinRoom,
 };
