@@ -10,5 +10,7 @@ router.get("/list", authorization, asyncHandler(roomController.listUserRooms));
 router.get("/:id", authorization, asyncHandler(roomController.getRoomById));
 router.put("/:id", authorization, asyncHandler(roomController.updateRoom));
 router.delete("/:id", authorization, asyncHandler(roomController.deleteRoom));
+router.post("/:id/pin", authorization, asyncHandler(roomController.pinRoom));
+router.post("/:id/like", authorization, asyncHandler(roomController.likeRoom));
 
 export default router;
