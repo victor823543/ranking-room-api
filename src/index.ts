@@ -9,6 +9,7 @@ import "./models/FriendRequest.js";
 import "./models/Image.js";
 import "./models/Object.js";
 import "./models/Room.js";
+import "./models/Template.js";
 import "./models/User.js";
 
 import authRoutes from "./routes/auth.js";
@@ -17,6 +18,7 @@ import imageRoutes from "./routes/images.js";
 import objectRoutes from "./routes/objects.js";
 import roomRoutes from "./routes/rooms.js";
 import s3Routes from "./routes/s3.js";
+import templateRoutes from "./routes/templates.js";
 import userRoutes from "./routes/users.js";
 
 const server = express();
@@ -33,6 +35,7 @@ server.use("/api/images", imageRoutes);
 server.use("/api/rooms", roomRoutes);
 server.use("/api/objects", objectRoutes);
 server.use("/api/auth", authRoutes);
+server.use("/api/templates", templateRoutes);
 
 server.use(errorHandler);
 
