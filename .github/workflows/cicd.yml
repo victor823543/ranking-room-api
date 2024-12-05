@@ -22,11 +22,6 @@ jobs:
     needs: build
     runs-on: self-hosted
     steps:
-      - name: Clean Up Docker
-        run: |
-          docker system prune -af --volumes
-          docker rmi -f $(docker images -q) || true
-          docker rm -f $(docker ps -aq) || true
       - name: Pull image from Docker Hub
         run: docker pull --quiet victor823543/ranking-room-api:latest
       - name: Stop and Remove Old Container
