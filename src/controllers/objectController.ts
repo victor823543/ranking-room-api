@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { Object as RankingObject } from "../models/Object.js";
-import { RankingSystem, Room, UserPrivilage } from "../models/Room.js";
+import { IObject, Object as RankingObject } from "../models/Object.js";
+import { IRoom, RankingSystem, Room, UserPrivilage } from "../models/Room.js";
 import { ErrorCode, SuccessCode } from "../utils/constants.js";
 import { ErrorResponse, sendValidResponse } from "../utils/sendResponse.js";
 
@@ -341,4 +341,27 @@ async function updateObject(req: Request, res: Response) {
   return sendValidResponse(res, SuccessCode.OK, { roomId: findObject.room });
 }
 
-export default { rankObjects, addObjectsToRoom, updateObject };
+async function listAll(req: Request, res: Response) {
+  const { user } = res.locals;
+
+  try {
+    const rooms: IRoom[] = await Room.find({
+      users: { $elemMatch: { userId: user._id } },
+    });
+
+    const roomIds = rooms.map((room) => room._id);
+
+    const objects: IObject[] = await RankingObject.find({
+      room: { $in: roomIds },
+    });
+
+    return sendValidResponse<{ objects: IObject[] }>(res, SuccessCode.OK, {
+      objects,
+    });
+  } catch (error) {
+    console.error(error);
+    throw new ErrorResponse(ErrorCode.SERVER_ERROR, "Something went wrong.");
+  }
+}
+
+export default { rankObjects, addObjectsToRoom, updateObject, listAll };

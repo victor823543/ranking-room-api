@@ -20,5 +20,6 @@ router.put(
   authorization,
   asyncHandler(objectController.updateObject),
 );
+router.get("/", authorization, asyncHandler(objectController.listAll));
 
 export default router;
