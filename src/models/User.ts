@@ -20,6 +20,7 @@ export type TokenPayload = {
   _id: string;
   email: string;
   username: string;
+  timestamp: number;
 };
 
 const schema = new Schema<IUser>({

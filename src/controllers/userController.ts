@@ -83,6 +83,7 @@ async function signNewToken(req: Request, res: Response) {
     _id: findUser._id.toString(),
     email: findUser.email,
     username: findUser.username,
+    timestamp: findUser.timestamp,
   };
 
   try {
@@ -131,10 +132,11 @@ async function login(req: Request, res: Response) {
   }
 
   try {
-    const payload = {
+    const payload: TokenPayload = {
       _id: findUser._id.toString(),
       email: findUser.email,
       username: findUser.username,
+      timestamp: findUser.timestamp,
     };
 
     const token = jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "12h" });
@@ -164,10 +166,11 @@ async function signup(req: Request, res: Response) {
 
     const result = await User.create({ email, username, password_hash });
 
-    const payload = {
+    const payload: TokenPayload = {
       _id: result._id.toString(),
       email: result.email,
       username: result.username,
+      timestamp: result.timestamp,
     };
 
     const token = jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "12h" });
@@ -198,10 +201,11 @@ async function update(req: Request, res: Response) {
 
     await User.updateOne({ _id: user._id }, { $set: updatedFields });
 
-    const payload = {
+    const payload: TokenPayload = {
       _id: user._id.toString(),
       email: user.email,
       username: params.username || user.username,
+      timestamp: user.timestamp,
     };
 
     const token = jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "12h" });
