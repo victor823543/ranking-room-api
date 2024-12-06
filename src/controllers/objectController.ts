@@ -61,8 +61,6 @@ async function rankObjects(req: Request, res: Response) {
   }
 
   try {
-    console.log(objectRanking);
-    console.log(rankingSystem);
     // Rank objects
     await Promise.all(
       objectRanking.map(async (object) => {
