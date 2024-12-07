@@ -23,9 +23,11 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Pull image from Docker Hub
-        run: docker pull victor823543/ranking-room-api:latest
-      - name: Delete old container
-        run: docker rm -f nodejs-app-container
+        run: docker pull --quiet victor823543/ranking-room-api:latest
+      - name: Stop and Remove Old Container
+        run: |
+          docker stop nodejs-app-container || true
+          docker rm nodejs-app-container || true
       - name: Create .env file
         run: |
           echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env

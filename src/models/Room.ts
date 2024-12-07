@@ -56,7 +56,7 @@ export type IRoom = {
   rankingSystem: RankingSystem;
   maxPoints?: number;
   categories?: string[];
-  tierNames?: string[];
+  tierNames?: { name: string; points: number }[];
   objects: Array<Types.ObjectId>;
   likedBy: Array<Types.ObjectId>;
   public: boolean;
@@ -94,7 +94,7 @@ const schema = new Schema<IRoom>({
     required: false,
   },
   tierNames: {
-    type: [String],
+    type: [{ name: String, points: Number }],
     required: false,
   },
   objects: {

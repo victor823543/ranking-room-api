@@ -9,7 +9,11 @@ import {
   UserPrivilage,
   UserRole,
 } from "../models/Room.js";
-import { ErrorCode, SuccessCode } from "../utils/constants.js";
+import {
+  defaultTierListNames,
+  ErrorCode,
+  SuccessCode,
+} from "../utils/constants.js";
 import { ErrorResponse, sendValidResponse } from "../utils/sendResponse.js";
 
 type CreateRoomBody = {
@@ -35,7 +39,7 @@ type GetRoomResponse = {
   rankingSystem: RankingSystem;
   maxPoints?: number;
   categories?: string[];
-  tierNames?: string[];
+  tierNames?: { name: string; points: number }[];
   objects: Array<IObject>;
   isPinned: boolean;
   likedBy: Array<string>;
@@ -93,11 +97,14 @@ async function createRoom(req: Request, res: Response) {
   ].concat(users || []);
 
   try {
+    const tierNames =
+      rankingSystem === RankingSystem.TIER ? defaultTierListNames : undefined;
     const newRoom: IRoom = await Room.create({
       name,
       rankingSystem,
       users: roomUsers,
       public: false,
+      tierNames,
     });
 
     if (newRoom === null) {

@@ -51,7 +51,12 @@ async function googleLogin(req: Request, res: Response) {
 
     // Create a JWT token
     const appToken = jwt.sign(
-      { _id: user._id, email: user.email, username: user.username },
+      {
+        _id: user._id,
+        email: user.email,
+        username: user.username,
+        timestamp: user.timestamp,
+      },
       ACCESS_TOKEN_SECRET,
       { expiresIn: "12h" },
     );
