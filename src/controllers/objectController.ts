@@ -75,7 +75,7 @@ async function rankObjects(req: Request, res: Response) {
                 );
               }
               const userRanking = result.ranking.find(
-                (ranking) => ranking.user === user._id,
+                (ranking) => ranking.user.toString() === user._id,
               );
               if (userRanking === undefined) {
                 result.ranking.push({ user: user._id, tier: object.tier });
@@ -132,15 +132,11 @@ async function rankObjects(req: Request, res: Response) {
                   "Couldn't find the object.",
                 );
               }
-              console.log(result.ranking);
-              console.log(user._id);
               const userRanking = result.ranking.find(
                 (ranking) => ranking.user.toString() === user._id,
               );
-              console.log(userRanking);
               if (userRanking === undefined) {
                 result.ranking.push({ user: user._id, rank: object.rank });
-                console.log("did push", { user: user._id, rank: object.rank });
               } else {
                 userRanking.rank = object.rank;
               }
@@ -155,8 +151,6 @@ async function rankObjects(req: Request, res: Response) {
                   ),
                 0,
               );
-              console.log(totalRankingPoints);
-              console.log(totalRankingPoints / result.ranking.length);
               result.averageRankingPoints =
                 totalRankingPoints / result.ranking.length;
 
@@ -173,7 +167,7 @@ async function rankObjects(req: Request, res: Response) {
                 );
               }
               const userRanking = result.ranking.find(
-                (ranking) => ranking.user === user._id,
+                (ranking) => ranking.user.toString() === user._id,
               );
               if (userRanking === undefined) {
                 result.ranking.push({
